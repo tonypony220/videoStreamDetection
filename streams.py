@@ -325,7 +325,7 @@ class ObjectsDetectionVideoStream(Thread):
                     cv2.putText(image, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX,
                         fontScale=font_scale, color=(0, 0, 0), thickness=thickness)
             if self.count:
-                cv2.putText(image, f"Count: {count}", (w/2, h/2), cv2.FONT_HERSHEY_SIMPLEX,
+                cv2.putText(image, f"Count: {count}", (200, 200)), cv2.FONT_HERSHEY_SIMPLEX,
                     fontScale=3, color=(255,255,255), thickness=5)
             retImg = image
             time_took = time.perf_counter() - start
