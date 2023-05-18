@@ -4,8 +4,9 @@ mkdir data
 wget -N -P data https://pjreddie.com/media/files/yolov3.weights
 wget -N -P data https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolov3.cfg
 wget -N -P data https://raw.githubusercontent.com/pjreddie/darknet/master/data/coco.names
-wget -N -P data https://raw.githubusercontent.com/pjreddie/darknet/master/data/coco.names
 
+wget -N -P data https://raw.githubusercontent.com/smarthomefans/darknet-test/master/yolov3-tiny.cfg
+wget -N -P data https://raw.githubusercontent.com/smarthomefans/darknet-test/master/yolov3-tiny.weights
 # -- for pytorch
 #wget -N https://raw.githubusercontent.com/x4nth055/pythoncode-tutorials/master/machine-learning/object-detection/utils.py
 #wget -N https://raw.githubusercontent.com/x4nth055/pythoncode-tutorials/master/machine-learning/object-detection/darknet.py

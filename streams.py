@@ -24,8 +24,6 @@ class Camera(Thread):
         Thread.__init__(self)
         self.__cam = self.vs
         self.ques = ques
-       # self.__normalQue = normalQue
-       # self.__detectedQue = detectedQue
         self.__shouldStop = False
 
     def __del__(self):
@@ -36,15 +34,10 @@ class Camera(Thread):
         while True:
             frame = self.__cam.read()
 
-            #fps = self.__cam.stream.get(cv2.CAP_PROP_FPS)
             if frame is not None:
                 #frame = cv2.resize(frame, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_AREA)
-                #_, jpeg = cv2.imencode('.jpg', frame)
                 for que in self.ques:
-                    que.put(deepcopy(frame))
-                # self.__normalQue.put(frame)
-                #self.__normalQue.put(jpeg.tobytes())
-                # self.__detectedQue.put(frame) #deepcopy(jpeg.tobytes()))
+                    que.put(frame)
 
             if self.__shouldStop:
                 break
@@ -61,8 +54,6 @@ class NormalVideoStream(Thread):
         self.res = 240
         self.on = False
 
-        # Trained XML classifiers describes some features of some object we want to detect
-        # self.car_cascade = cv2.CascadeClassifier('cars.xml')
 
     def run(self):
         while True:
@@ -119,13 +110,13 @@ class FPSOverlayVideoStream(Thread):
 
 
     def run(self):
-        num_frames = self.num_frames;
+        num_frames = self.num_frames
         start = time.time()
         while True:
             if self.__frames.empty():
                 continue
             if num_frames == 0:
-                num_frames = self.num_frames;
+                num_frames = self.num_frames
                 # End time
                 end = time.time()
                 # Time elapsed
@@ -145,7 +136,6 @@ class FPSOverlayVideoStream(Thread):
                     print('FPS stream frame is none')
                     continue
 
-                fps                    = 25
                 font                   = cv2.FONT_HERSHEY_SIMPLEX
                 bottomLeftCornerOfText = (10,500)
                 fontScale              = 1
@@ -182,7 +172,8 @@ class ObjectsDetectionVideoStream(Thread):
             framesQue: Queue,
             cam: Camera = None,
             objects=['car'], 
-            count: bool = False
+            count: bool = False,
+            use_tiny_model: bool = True,
             ):
 
         Thread.__init__(self)
@@ -200,8 +191,9 @@ class ObjectsDetectionVideoStream(Thread):
         self.CONFIDENCE = 0.2
         self.SCORE_THRESHOLD = 0.5
         self.IOU_THRESHOLD = 0.5
-        self.config_path = "data/yolov3.cfg"
-        self.weights_path = "data/yolov3.weights"
+        tiny = '-tiny' if use_tiny_model else ''
+        self.config_path = f"data/yolov3{tiny}.cfg"
+        self.weights_path = f"data/yolov3{tiny}.weights"
         self.labels = open("data/coco.names").read().strip().split("\n")
         self.ids_to_display = []
         for i, obj in enumerate(self.labels):
@@ -209,8 +201,7 @@ class ObjectsDetectionVideoStream(Thread):
                 self.ids_to_display.append(i)
         self.colors = np.random.randint(0, 255, size=(len(self.labels), 3), dtype="uint8")
         self.net = cv2.dnn.readNetFromDarknet(self.config_path, self.weights_path)
-        self.res = 413
-
+        self.res = 416 if use_tiny_model else 618 # hardcoded from cfg
 
         # -------------- init for torch ------ 
         # self.nms_threshold = 0.4
@@ -222,8 +213,11 @@ class ObjectsDetectionVideoStream(Thread):
         # self.m.load_weights(weight_file)
         # class_names = load_class_names(namesfile)
 
+        # ----- for cascade ---- 
+        # Trained XML classifiers describes some features of some object we want to detect
+        # self.car_cascade = cv2.CascadeClassifier('cars.xml')
+
     def run(self):
-        # i = 0 
         while True:
         # print(self.__frames.qsize(), end="//")
             if self.__frames.empty():
@@ -325,8 +319,7 @@ class ObjectsDetectionVideoStream(Thread):
                     cv2.putText(image, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX,
                         fontScale=font_scale, color=(0, 0, 0), thickness=thickness)
             if self.count:
-                cv2.putText(image, f"Count: {count}", (200, 200)), cv2.FONT_HERSHEY_SIMPLEX,
-                    fontScale=3, color=(255,255,255), thickness=5)
+                cv2.putText(image, f"Count: {count}", (200, 200), cv2.FONT_HERSHEY_SIMPLEX, fontScale=3, color=(255,255,255), thickness=5)
             retImg = image
             time_took = time.perf_counter() - start
             print(f"took: {time_took:.2f}s")
